@@ -6,7 +6,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "82:80"
     links:
       - php:php-cgi
     volumes:
