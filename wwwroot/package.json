@@ -1,0 +1,36 @@
+{
+  "name": "node2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bluebird": "^3.5.3",
+    "json-sql": "^0.4.11",
+    "koa": "^2.7.0",
+    "koa-better-body": "^3.0.4",
+    "koa-convert": "^1.2.0",
+    "koa-ejs": "^4.2.0",
+    "koa-router": "^7.4.0",
+    "koa-send": "^5.0.0",
+    "koa-session": "^5.10.1",
+    "koa-static": "^5.0.0",
+    "koa2-cors": "^2.0.6",
+    "memorystream": "^0.3.1",
+    "opn": "^5.4.0",
+    "promise-fs": "^2.0.1",
+    "promise-mysql": "^3.3.1",
+    "redis": "^2.8.0",
+    "uuid": "^3.3.2"
+  },
+  "dependencies": {
+    "dx-captcha-sdk": "^0.1.0",
+    "qs": "^6.8.0",
+    "util": "^0.12.2"
+  }
+}

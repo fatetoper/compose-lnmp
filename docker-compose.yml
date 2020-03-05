@@ -1,4 +1,4 @@
-version: '3'
+version: '1.1'
 services:
   nginx:
     hostname: nginx
@@ -33,3 +33,24 @@ services:
       MYSQL_DATABASE: wordpress
       MYSQL_USER: user
       MYSQL_PASSWORD: user123
+  
+  redis-server:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    restart: always
+
+  node:
+    hostname: node
+    build:
+      context: ./wwwroot
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - mysql:mysql-db
+      - redis-server:rd
+    command: node server/server.js
+    volumes:
+      - ./wwwroot:/wwwroot
+    restart: always
