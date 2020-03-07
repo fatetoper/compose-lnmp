@@ -1,4 +1,4 @@
-FROM node
+FROM node:12-slim
 LABEL "PowerBy"="fatetoper"
 COPY ./ /wwwroot
 WORKDIR /wwwroot
