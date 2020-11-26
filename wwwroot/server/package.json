@@ -1,0 +1,66 @@
+{
+  "name": "fatetoper-koa2-restful-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "gulp",
+    "build": "gulp build",
+    "server": "node dist/server.js",
+    "pm2": "pm2 start pm2.config.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:fatetoper/koaServer.git"
+  },
+  "keywords": [
+    "koa2",
+    "restful",
+    "fatetoper"
+  ],
+  "author": "fatetoper",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-register": "^6.24.1",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^6.1.2",
+    "gulp-clean": "^0.3.2",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-replace": "^0.5.4",
+    "gulp-sequence": "^0.4.6",
+    "gulp-uglify": "^3.0.0",
+    "koa": "^2.2.0",
+    "koa-logger": "^2.0.1",
+    "koa-router": "^7.1.1",
+    "koa-session2": "^2.2.3",
+    "md5": "^2.2.1",
+    "mysql2": "^1.2.0",
+    "nodemailer": "^4.0.1",
+    "require-directory": "^2.1.1"
+  },
+  "engines": {
+    "node": ">= 7.8.0",
+    "npm": ">= 4.2.0"
+  },
+  "dependencies": {
+    "better-mock": "^0.2.5",
+    "bluebird": "^3.7.2",
+    "dx-captcha-sdk": "^0.1.0",
+    "koa-better-body": "^3.3.9",
+    "koa-convert": "^2.0.0",
+    "koa-cookie": "^1.0.0",
+    "koa-session": "^5.4.0",
+    "koa-static": "^5.0.0",
+    "koa2-common": "^1.0.0",
+    "koa2-cors": "^2.0.6",
+    "mockjs": "^1.1.0",
+    "promise-fs": "^2.1.1",
+    "promise-mysql": "^4.1.3",
+    "redis": "^3.0.2",
+    "uuid": "^8.3.1"
+  }
+}

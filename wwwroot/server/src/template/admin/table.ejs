@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <style media="screen">
+    .dialog-panel {position:fixed; left: 50%; top: 50px; width: 500px; margin-left:-250px; z-index:99; display:none}
+    .dialog-shadow {position:fixed; left: 0; top:0; width:100%; height:100%; background:#000; opacity:0.3; z-index:98; display:none}
+    </style>
+    <title></title>
+  </head>
+  <body>
+    <%-include('components/tabs.ejs')%>
+
+    <button type="button" id="btn_add" class="btn btn-default">添加</button>
+
+    <!-- 添加 -->
+    <div class="dialog-shadow" id="shadow"></div>
+    <div class="panel panel-default dialog-panel" id="dialog">
+      <div class="panel-heading">
+        <h2 class="panel-title">
+          添加
+          <a href="#" class="glyphicon glyphicon-remove pull-right" id="btn_close"></a>
+        </h2>
+      </div>
+      <div class="panel-body">
+        <!--内容-->
+        <form action="/admin/<%=name%>" method="post" enctype="multipart/form-data">
+
+          <% for(let name in fields){%>
+          <div class="form-group">
+            <label for="<%=name%>"><%=fields[name].title%></label>
+            <%
+            switch(fields[name].type){
+              case 'textarea':
+            %>
+              <textarea id="<%=name%>" name="<%=name%>" class="form-control" rows="10" placeholder="请输入<%=fields[name].title%>"></textarea>
+            <%
+                break;
+              case 'fields':
+            %>
+              <div class="fields" id="fields_<%=name%>">
+                <div class="row">
+                  <div class="col-xs-4">
+                    <input type="text" class="form-control" name="<%=name%>_key" placeholder="请输入字段名称">
+                  </div>
+                  <div class="col-xs-8">
+                    <input type="text" class="form-control" name="<%=name%>_value" placeholder="请输入字段值">
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-default" onclick="addField('fields_<%=name%>', '<%=name%>')">添加</button>
+            <%
+                break;
+              case 'files':
+            %>
+              <input type="file" class="form-control" id="<%=name%>" name="<%=name%>" placeholder="请输入<%=fields[name].title%>" multiple>
+            <%
+                break;
+              default:
+            %>
+              <input type="<%=fields[name].type%>" class="form-control" id="<%=name%>" name="<%=name%>" placeholder="请输入<%=fields[name].title%>">
+            <%
+                break;
+            }
+            %>
+
+          </div>
+          <% } %>
+
+
+
+
+
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary">添加</button>
+            <button type="button" class="btn btn-default" id="btn_cancel">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 修改 -->
+    <div class="dialog-shadow" id="shadow2"></div>
+    <div class="panel panel-default dialog-panel" id="dialog2">
+      <div class="panel-heading">
+        <h2 class="panel-title">
+          修改
+          <a href="#" class="glyphicon glyphicon-remove pull-right" id="btn_close2"></a>
+        </h2>
+      </div>
+      <div class="panel-body">
+        <!--内容-->
+        <form id="form_mod" action="" method="post" enctype="multipart/form-data">
+
+          <% for(let name in fields){%>
+          <div class="form-group">
+            <label for="<%=name%>_mod"><%=fields[name].title%></label>
+            <%
+            switch(fields[name].type){
+              case 'textarea':
+            %>
+              <textarea id="<%=name%>_mod" name="<%=name%>" class="form-control" rows="10" placeholder="请输入<%=fields[name].title%>"></textarea>
+            <%
+                break;
+              case 'fields':
+            %>
+              <div class="fields" id="fields_<%=name%>_mod">
+
+              </div>
+              <button type="button" class="btn btn-default" onclick="addField('fields_<%=name%>_mod', '<%=name%>')">添加</button>
+            <%
+                break;
+              case 'files':
+            %>
+              <input type="file" class="form-control" id="<%=name%>_mod" name="<%=name%>" placeholder="请输入<%=fields[name].title%>" multiple>
+            <%
+                break;
+              default:
+            %>
+              <input type="<%=fields[name].type%>" class="form-control" id="<%=name%>_mod" name="<%=name%>" value="">
+            <%
+                break;
+            }
+            %>
+
+          </div>
+          <% } %>
+
+
+
+
+
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary">修改</button>
+            <button type="button" class="btn btn-default" id="btn_cancel2">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>
+            <input type="checkbox" id="check_all">
+          </th>
+          <th>ID</th>
+
+          <% for(let name in fields){%>
+            <% if(fields[name].show_in_table!==false){ %>
+              <th><%=fields[name].title%></th>
+            <% } %>
+          <%}%>
+
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%datas.forEach((data,index)=>{%>
+          <tr>
+            <td>
+              <input type="checkbox" value="<%=data.ID%>" name="check_id">
+            </td>
+            <td><%=data.ID%></td>
+
+            <% for(let name in fields){%>
+              <% if(fields[name].show_in_table!==false){ %>
+                <td><%=data[name]%></td>
+              <% } %>
+            <%}%>
+
+            <td>
+              <button type="button" class="btn btn-default" onclick="mod_data(datas[<%=index%>])">修改</button>
+              <button type="button" class="btn btn-danger" onclick="del_data(<%=data.ID%>)">删除</button>
+            </td>
+          </tr>
+        <%})%>
+
+      </tbody>
+    </table>
+
+    <button type="button" id="btn_del" class="btn btn-danger">删除</button>
+
+
+    <%if(page_count>1){%>
+      <nav>
+        <ul class="pagination">
+          <%if(page>1){%>
+            <li>
+              <a href="/admin/<%=name%>/<%=page-1%>">
+                <span>&laquo;</span>
+              </a>
+            </li>
+          <%}%>
+
+          <%for(let i=1;i<=page_count;i++){%>
+            <%if(i==page){%>
+              <li class="active"><a href="#"><%=i%></a></li>
+            <%}else{%>
+              <li><a href="/admin/<%=name%>/<%=i%>"><%=i%></a></li>
+            <%}%>
+          <%}%>
+
+          <%if(page<page_count){%>
+            <li>
+              <a href="/admin/<%=name%>/<%=page+1%>">
+                <span>&raquo;</span>
+              </a>
+            </li>
+          <%}%>
+        </ul>
+      </nav>
+    <%}%>
+    <script type="text/javascript">
+    const datas=<%-JSON.stringify(datas)%>;
+    const fields=<%-JSON.stringify(fields)%>;
+    const name='<%=name%>';
+
+    let oBtn=document.getElementById('btn_add');
+    let oBtnCancel=document.getElementById('btn_cancel');
+    let oBtnClose=document.getElementById('btn_close');
+    let oShadow=document.getElementById('shadow');
+    let oDialog=document.getElementById('dialog');
+
+    oBtn.onclick=function (){
+      oShadow.style.display='block';
+      oDialog.style.display='block';
+    };
+
+    oBtnCancel.onclick=oBtnClose.onclick=function (){
+      oShadow.style.display='none';
+      oDialog.style.display='none';
+    };
+
+    function addField(id, name){
+      let oParent=document.getElementById(id);
+      let row=document.createElement('div');
+      row.className="row";
+      row.innerHTML=`
+      <div class="col-xs-4">
+        <input type="text" class="form-control" name="${name}_key" placeholder="请输入字段名称">
+      </div>
+      <div class="col-xs-8">
+        <input type="text" class="form-control" name="${name}_value" placeholder="请输入字段值">
+      </div>`;
+
+      oParent.appendChild(row);
+    }
+
+    function mod_data(old_data){
+      let shadow=document.getElementById('shadow2');
+      let dialog=document.getElementById('dialog2');
+      let btn_close=document.getElementById('btn_close2');
+      let btn_cancel=document.getElementById('btn_cancel2');
+
+      let form=document.getElementById('form_mod');
+
+      form.action=`/admin/<%=name%>/${old_data.ID}`;
+
+      //1.显示
+      shadow.style.display='block';
+      dialog.style.display='block';
+
+      btn_cancel.onclick=btn_close.onclick=function (){
+        shadow.style.display='none';
+        dialog.style.display='none';
+      };
+
+      //2.填充数据
+      let eles=dialog.getElementsByTagName('*');
+      Array.from(eles).forEach(ele=>{
+        let name=ele.name;
+        if(fields[name]){
+          if(fields[name].type=='fields'){
+
+          }else if(ele.type=='file'){
+            //...
+          }else{
+            ele.value=old_data[name];
+          }
+        }
+      })
+
+
+
+      for(let name in fields){
+        if(fields[name].type=='fields'){
+          //1.创建
+          //上牌时间|2008年1月,表显里程|15万公里,本车排量|2.0L,变速箱|手动,排放标准|国Ⅳ,车辆性质|正常家用,车辆颜色|黑,维修保养|4S店维修保养,年检到期|车主未填写,商业险到期|车主未填写,交强险到期|车主未填写,档位个数,驱动方式,综合油耗,车身结构,发动机缸数,最大功率,进气类型
+          let arr=old_data[name].split(',');
+          let parent=document.getElementById(`fields_${name}_mod`);
+
+          parent.innerHTML='';
+          arr.forEach(str=>{
+            let oDiv=document.createElement('div');
+            oDiv.className='row';
+
+            //2.值填充
+            let [key,value]=str.split('|');
+            oDiv.innerHTML=`
+              <div class="col-xs-4">
+                <input type="text" class="form-control" name="${name}_key" value="${key||''}">
+              </div>
+              <div class="col-xs-8">
+                <input type="text" class="form-control" name="${name}_value" value="${value||''}">
+              </div>
+            `;
+
+            parent.appendChild(oDiv);
+          });
+        }
+      }
+    }
+
+    function del_data(id){
+      if(confirm("确定要删除此数据吗?")){
+        window.location=`/admin/del${name}/${id}`;
+      }
+    }
+
+    let aCheck=Array.from(document.getElementsByName('check_id'));
+    let oBtnDel=document.getElementById('btn_del');
+    oBtnDel.onclick=function (){
+      let ids=aCheck.filter(ch=>ch.checked).map(ch=>ch.value);
+
+      if(ids.length==0){
+        alert('请选择要删除的数据');
+      }else{
+        if(confirm(`确定删除这${ids.length}个数据吗?`)){
+          window.location=`/admin/del${name}/${ids.join('|')}`;
+        }
+      }
+    };
+
+    let oCheckAll=document.getElementById('check_all');
+
+    oCheckAll.onclick=function (){
+      let b=this.checked;
+      aCheck.forEach(ch=>{
+        ch.checked=b;
+      });
+    };
+    </script>
+  </body>
+</html>

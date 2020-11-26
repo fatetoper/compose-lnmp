@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    networks:
+     - frontend
     links:
       - php:php-cgi
     volumes:
@@ -16,6 +18,9 @@ services:
   php:
     hostname: php
     build: ./php
+    networks:
+     - backend
+     - frontend
     links:
       - mysql:mysql-db
     volumes:
@@ -25,35 +30,51 @@ services:
   mysql:
     hostname: mysql
     image: mysql:5.7
+    # build: ./mysql
     ports:
       - "3306:3306"
     volumes:
       - ./mysql/conf:/etc/mysql/conf.d
       - ./mysql/data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: user
-      MYSQL_PASSWORD: user123
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: mock_server
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "root"
     restart: always
-  
-  redis-server:
+    networks:
+     - backend
+     
+  redis:
     image: redis:latest
+    networks:
+     - backend
     ports:
       - 6379:6379
     restart: always
 
   node:
     hostname: node
+    container_name: mock_server
     build:
       context: ./wwwroot
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    links:
-      - mysql:mysql-db
-      - redis-server:rd
-    command: node server/server.js
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      redis_server_addr: redis
+      mysql_server_addr: mysql
+    networks:
+     - frontend
+     - backend
+    command: npm run dev
     volumes:
       - ./wwwroot:/wwwroot
     restart: always
+networks:
+  frontend:
+  backend:

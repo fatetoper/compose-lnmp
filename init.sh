@@ -1,2 +1,3 @@
 #!/bin/sh
-cd wwwroot && npm install && cd .. && docker-compose up -d
+# docker-compose up -d
+cd wwwroot/server && npm install && cd ../.. && docker-compose up -d

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<%- include('components/head.ejs') %>
+</head>
+<body>
+<div class="wrap-body">
+
+
+<button id="addBanner" class="addButton">添加banner数据</button>
+<button id="addNav" class="addButton">添加nav数据</button>
+
+
+<%- include('components/footer.ejs') %>
+
+</div>
+<script src="/js/data.js" charset="utf-8"></script>
+<script src="/js/db.js" charset="utf-8"></script>
+
+<script>
+
+// console.log(JSON_DATA);
+const meta_banner = {
+								table:'you_banner',
+								// fields 暂时必须是data里面有的字段，因为只能向数据库验证
+								// 可以考虑让fields根据data自行生成，或者需要对data做预加工
+								fields:['name','picUrl','targetUrl']
+							};
+add('#addBanner',JSON_DATA.focusList,meta_banner);
+
+const meta_nav ={
+	db:'z_bule_cars',
+	table:'you_nav',
+	fields:[
+					//这些是在加工数据里面可能存在的字段  // 存在保留字段 [type,name,method,parent,] 如果需要添加到下面对象里
+					['id','name','bannerUrl','superCategoryId','frontName','type'],
+					{'level':0,'race':'cateList','indexP':0,'tipName':'','typer':0},  // 所有数据都需要有的相同属性需要添加到此
+					{'id':'number','name':'string','bannerUrl':'string','superCategoryId':'number',
+					 'frontName':'string','type':'string','typer':'number'}, 
+  ],
+	maps:[
+		[4,3,3,6,5,3,3,2],
+		[3,6,7,7,4,4,6,5],
+		[3,3,2,4,2,3,4,5],
+		[2,3,4,3,4,2,5,4],
+		[6,6,2,3,3,2,4,4],
+		[4,4,5,2,5,2,3,3],
+		[3,4,4,1,2,2,4,2],
+		[4,3,3,2,2,5,6,10]
+	],
+	// 指定传入数据中需要解析的字段名、数据类型、解析方法和参数映射（如何与解析方法内参数对应，类似bind）
+	// params:{race:'raceName',type:'0(array)/1(json)/2(object)',index:''}}
+	// level:1 意义为下属成员的 level值为1
+	needResolve:[
+		{name:"subCateList",level:1,type:'json',method:'',parent:'cateList',params:{race:'cateList',typer:1}},
+		{name:"indexFocus",level:1,type:'json',method:'',parent:'cateList',params:{race:'cateList',typer:1}},
+		{name:"itemList",level:1,type:'json',method:'',parent:'cateList',params:{race:'cateList',typer:1}},
+		{name:"extra",level:2,type:'object',method:'',parent:'indexFocus',params:{race:'cateList',typer:2}},
+		{name:"itemTagList",level:2,type:'json',method:'',parent:'itemList',params:{race:'cateList',typer:1}},
+		{name:"indexFocus",level:2,type:'json',method:'',parent:'subCateList',params:{race:'cateList',typer:1}},
+	],
+	methods:{
+		
+	}
+}
+// console.log(flatJson(JSON_DATA.cateList,meta_nav))
+
+add('#addNav',flatJson(JSON_DATA.cateList,meta_nav),meta_nav);
+
+
+</script>
+</body></html>

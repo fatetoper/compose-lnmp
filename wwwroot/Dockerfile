@@ -1,7 +1,7 @@
 FROM node:12-slim
 LABEL "PowerBy"="fatetoper"
 COPY ./ /wwwroot
-WORKDIR /wwwroot
+WORKDIR /wwwroot/server
 RUN npm i --registry=https://registry.npm.taobao.org
 ENV NODE_ENV dev
 EXPOSE 8080
