@@ -433,8 +433,8 @@ router.post('/login/', async ctx=>{
         maxAge:10*60*1000
       })
       console.log("cnt==>tok:",tok)
-  let resCheck = ctx.session[tok]
-      console.log("ctx.session.tok==>", resCheck )
+  let resCheck = ctx.session[`${tok}`]
+      console.log("ctx.session.tok:", resCheck)
   let kw = ctx.cookies.get('_dx_uzZo5y',{
     httpOnly: false,
     signed: false,

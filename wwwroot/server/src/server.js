@@ -6,12 +6,24 @@ import cors from 'koa2-cors'
 import network from './libs/network'
 import cookie from 'koa-cookie'
 import koa2Common from 'koa2-common'
+const session = require('koa-session2');
 import { SYSTEM, ERRORS } from './config'
 import router from './routes'
 
 const server = new Koa()
 const env = process.env.NODE_ENV || 'development'
 
+const Store = require('./libs/session');
+const config = {
+    redis: {
+      port: 6379,
+      host: 'localhost',
+      family: 4,
+      password: '123456',
+      db: 0
+   },
+}
+ 
 export default (async (server, env)=>{
     // error 页面引入
     let error_404='';
@@ -52,9 +64,9 @@ export default (async (server, env)=>{
         // .use(koa2Common())
         .use(cors({
             origin: function (ctx) {
-                if(ctx.url.startsWith('/api/you')){
-                return 'http://localhost'
-                }
+                // if(ctx.url.startsWith('/api/you')){
+                // return 'http://localhost'
+                // }
                 return SYSTEM.ORIGIN; // 这样就能只允许 http://localhost:80
             },
             exposeHeaders: ['WWW-Authenticate', 'Server-Authorization'],
@@ -66,19 +78,23 @@ export default (async (server, env)=>{
         }))
         .use(router.routes())
         .use(router.allowedMethods())
+        .use(session({
+            store: new Store(config.redis),
+            maxAge:1*60*60*1000
+        }))
         .use((ctx, next) => {
             const start = new Date()
             return next().then(() => {
                 const ms = new Date() - start
                 console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
             })
-        })
+        });
 
     // 全局引入 MySQL、Redis客户端
     server.context.db = await require('./libs/mysql');
     server.context.redis = require('./libs/redis');
     //session
-    await require('./libs/session')(server);
+    // await require('./libs/session')(server);
 
     server.listen(SYSTEM.PROT);
     network.forEach(ip => {
