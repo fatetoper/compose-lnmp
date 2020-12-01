@@ -1,3 +1,13 @@
+/*
+ * @Author: fatetoper
+ * @Date: 2020-12-01 01:42:10
+ * @LastEditors: fatetoper
+ * @LastEditTime: 2020-12-01 03:08:30
+ * @Modultype: Component
+ * @Usage: import/global/prototype
+ * @Description: Do not edit
+ * @FilePath: \docker\wwwroot\server\src\server.js
+ */
 import Koa from 'koa'
 import {post, upload} from './libs/body'
 import KoaLogger from 'koa-logger'
@@ -12,17 +22,7 @@ import router from './routes'
 
 const server = new Koa()
 const env = process.env.NODE_ENV || 'development'
-
-const Store = require('./libs/session');
-const config = {
-    redis: {
-      port: 6379,
-      host: 'localhost',
-      family: 4,
-      password: '123456',
-      db: 0
-   },
-}
+const store = require('./libs/session');
  
 export default (async (server, env)=>{
     // error 页面引入
@@ -79,7 +79,7 @@ export default (async (server, env)=>{
         .use(router.routes())
         .use(router.allowedMethods())
         .use(session({
-            store: new Store(config.redis),
+            store: store,
             maxAge:1*60*60*1000
         }))
         .use((ctx, next) => {
@@ -92,7 +92,7 @@ export default (async (server, env)=>{
 
     // 全局引入 MySQL、Redis客户端
     server.context.db = await require('./libs/mysql');
-    server.context.redis = require('./libs/redis');
+    // server.context.redis = require('./libs/redis');
     //session
     // await require('./libs/session')(server);
 

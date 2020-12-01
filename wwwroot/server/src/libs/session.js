@@ -1,17 +1,33 @@
+/*
+ * @Author: fatetoper
+ * @Date: 2020-12-01 01:42:10
+ * @LastEditors: fatetoper
+ * @LastEditTime: 2020-12-01 03:08:05
+ * @Modultype: Component
+ * @Usage: import/global/prototype
+ * @Description: Do not edit
+ * @FilePath: \docker\wwwroot\server\src\libs\session.js
+ */
 const Redis = require("ioredis");
 const { Store } = require("koa-session2");
- 
+const config = {
+    redis: {
+      port: 6379,
+      host: 'localhost',
+    //   family: 4,
+    //   password: '123456',
+    //   db: 0
+   },
+}
 class RedisStore extends Store {
     constructor(redisConfig) {
         super();
         this.redis = new Redis(redisConfig);
     }
- 
     async get(sid, ctx) {
         let data = await this.redis.get(`SESSION:${sid}`);
         return JSON.parse(data);
     }
- 
     async set(session, { sid =  this.getID(24), maxAge = 1000000 } = {}, ctx) {
         try {
             // Use redis set EX to automatically drop expired sessions
@@ -19,13 +35,11 @@ class RedisStore extends Store {
         } catch (e) {}
         return sid;
     }
- 
     async destroy(sid, ctx) {
         return await this.redis.del(`SESSION:${sid}`);
     }
 }
- 
-module.exports = RedisStore;
+module.exports = new RedisStore(config.redis);
 
 
 // const session = require('koa-session');
