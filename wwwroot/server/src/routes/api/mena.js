@@ -242,7 +242,7 @@ router.get('/images/:dirname', async ctx=>{
   const sql = `SELECT aid AS uid,title AS name,CONCAT('${baseUrl}',url)AS url,uptime,'done' AS status  FROM rc_uploads WHERE arcpath = '${dirname}'`
   try {
     const res = await ctx.db.query(sql)
-    // console.log(res)
+    console.log(res)
     if (res) {
       ctx.body = res
     }
@@ -252,6 +252,71 @@ router.get('/images/:dirname', async ctx=>{
       error: "文件路径错误"
     }
   }
+})
+
+router.post('/imageRemove/',
+async (ctx, next) =>{
+  console.log('/imageRemove/')
+  ctx.imgRmStatus = false
+  ctx.reqData = ctx.request.fields ? ctx.request.fields : ctx.request.query
+  const uid = ctx.reqData.uid
+  const pathUpload = ctx.reqData.dirname
+  const sql = `SELECT * FROM rc_uploads where aid = ${uid}`
+  try {
+    const res = await ctx.db.query(sql)
+    console.log(res)
+    if (res) {
+      
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      error: "图片uid不存在"
+    }
+  }
+  await next()
+},
+async (ctx, next) =>{
+  const uid = ctx.reqData.uid
+  const sql = `DELETE FROM rc_uploads where aid = ${uid}`
+  try {
+    const res = await ctx.db.query(sql)
+    console.log('delete??', res)
+    if (res) {
+      ctx.body = res
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      error: "图片uid不存在"
+    }
+  }
+  await next()
+})
+
+router.get('/imagesRemove/:key', async ctx=>{
+  console.log('/imagesRemove/:key')
+  const key = ctx.params.key
+  const sql = `DELETE FROM rc_uploads where title LIKE '%${key}%'`
+  if(key){
+    try {
+      const res = await ctx.db.query(sql)
+      console.log(res)
+      if (res) {
+        ctx.body = res
+      }
+    } catch (e) {
+      console.log(e)
+      ctx.body = {
+        error: "图片uid不存在"
+      }
+    }
+  } else {
+    ctx.body = {
+      error: "删除图片条件未设定"
+    }
+  }
+  
 })
 
 // 上传img获取URL	POST	/api/mena/img
@@ -270,13 +335,12 @@ async (ctx, next) => {
     const file = ctx.request.fields.file[0]
     const tmpDir = 'tmp'
     pathUpload = ctx.request.fields.dirname
-
     const renamePath = UPLOAD.TMP.replace(tmpDir, pathUpload)
     ctx.renamePath = renamePath
-    ctx.renameDir = renamePath + '\\' + file.name
+    ctx.renameDir = renamePath + '/' + file.name
     console.log('@3=================@renameDir=>', ctx.renameDir)
     ctx.imgPath = pathUpload + '/' + file.name
-    console.log('@4=================@renameDir=>', ctx.imgPath)
+    console.log('@4=================@imgPath=>', ctx.imgPath)
    
     let isExists = await getStat(renamePath)
     if (!isExists) {
@@ -285,7 +349,7 @@ async (ctx, next) => {
       const deLink = await doUnlink(renamePath)
       if (deLink) {
         ctx.renamePathStatus = await doMkdir(renamePath)
-      } 
+      }
       else throw `Can not build path ${renamePath}`
     } else ctx.renamePathStatus = true
 
@@ -308,6 +372,7 @@ async (ctx, next) => {
     }
     // ctx.url = '/' + baseUrl(ctx.renamePath) + '/' + ctx.imgPath
     ctx.url = '/' + ctx.imgPath
+    console.log('ctx.url==>', ctx.url)
     const { file:[{ size: upSize, name:upName , type: upType }], dirname: arcPath, arcid: arcId } = ctx.request.fields
     const time = Math.round(new Date().getTime()/1000).toString()
     const imgInfo = {
@@ -321,10 +386,10 @@ async (ctx, next) => {
     }
     let sql = `INSERT INTO rc_uploads(arcid,arcpath,title,url,mediatype,width,height,filesize,uptime,playtime) `
     sql+= `VALUES(${imgInfo.arcid},"${arcPath}","${imgInfo.title}","${ctx.url}",${imgInfo.mediatype},"${imgInfo.width}","${imgInfo.height}",${upSize},${time},${imgInfo.playtime});`
-    console.log(sql)
+    // console.log(sql)
     try {
-      const res = await ctx.db.query(sql) 
-      console.log('/imgupload', res)
+      const res = await ctx.db.query(sql)
+      // console.log('/imgupload', res)
       if (res) {
         ctx.body = {
           url: ctx.url
@@ -364,54 +429,51 @@ router.post('/checkNum/', async ctx=>{
   let result = await ctx.db.query(sql)
   console.log("result.length:",result.length)
   if(result.length){
-    ctx.body={ok:true}
+    ctx.body = { ok:true }
   }else{
     // 注册临时用户  最好用个存储函数
     let sql = `INSERT INTO you_usrs(tel) VALUES(${kw.tel});`
-    let result =await ctx.db.query(sql)
+    let result = await ctx.db.query(sql)
     console.log(result)
-    if(result.affectedRows&&result.affectedRows!==0){
+    if(result.affectedRows && result.affectedRows !== 0){
       ctx.body = {ok:true,errorText:'注册用户成功'}
     }else{
       ctx.body = {ok:false,errorText:'注册用户失败，请重试'}
     }
     
   }
+  ctx.cookies.set('mark', 'down', { signed: true })
+  console.log('ctx.session.userinfo==>', ctx.session.userinfo);
   // 发送验证码
   let makeAndSend= async (tel)=>{
     // 生成验证码
     let random = makeRandom(6)
     console.log("makeRandom(6):",random)
     // 生成token
-    let tok = makeToken()
-    console.log("tok:",tok)
-    // 存入session
-    ctx.session[`${tok}`] = random
-    console.log("ctx.session.tok:",ctx.session[`${tok}`])
+    // let tok = makeToken().toString()  
+    // console.log("tok:",tok)
+    
     // 发送验证码
-    let res =await sendCheck(tel,random,true)
+    let res = await sendCheck(tel,random,true)
     // 如果发送成功,存入cookie
     if(res){
-      ctx.cookies.set('cnt',tok,{
-        // httpOnly: false,
-        // signed: false,
-        maxAge:10*60*1000,
-        // secure:false
-      })
+      // 存入session
+      ctx.session.checkNum = random
+      console.log("ctx.session.checkNum:", ctx.session.checkNum)
     }
   }
   // 检查token和验证码
-  let checkToken = ctx.cookies.get('cnt',{
+  let checkToken = ctx.cookies.get('checkNum',{
     // httpOnly: false,
     // signed: false,
     maxAge:10*60*1000
   })
   if(checkToken){
     // 查询验证码，重新发送
-    let res =ctx.session[checkToken]
-    if(res!==undefined){
+    let res = ctx.session.checkNum
+    if(res !== undefined){
       console.log("cnt 仍在有效期")
-      sendCheck(res)
+      // sendCheck(res)
     }else{
       makeAndSend(kw.tel)
     }
@@ -427,19 +489,15 @@ router.post('/login/', async ctx=>{
   // console.log("ctx.request.query==> :",ctx.request.query)
   let result = {},
       humanCheck = false,
-      tok = ctx.cookies.get('cnt',{
+      tok = ctx.cookies.get('checkNum',{
         // httpOnly: false,
         // signed: false,
         maxAge:10*60*1000
       })
       console.log("cnt==>tok:",tok)
-  let resCheck = ctx.session[tok]
+  let resCheck = ctx.session['checkNum']
       console.log("ctx.session.tok==>", resCheck )
-  let kw = ctx.cookies.get('_dx_uzZo5y',{
-    httpOnly: false,
-    signed: false,
-    maxAge:10*60*1000
-  })
+  
   let reqData = Qs.parse(ctx.request.query.data).data
       reqData = JSON.parse(reqData)
   let  checkNum = reqData.captch,
@@ -447,9 +505,13 @@ router.post('/login/', async ctx=>{
  
   console.log("reqData:",reqData)
   console.log("checkNum:",checkNum)
-  console.log("_dx_uzZo5y:",kw)
 
   // 验证图片
+  let kw = ctx.cookies.get('_dx_uzZo5y',{
+    // httpOnly: false,
+    // signed: false,
+    maxAge:10*60*1000
+  })
   const sdk = new CaptchaSDK('da7fbbcecea237308fae9e331c9351dd', '043feb6b2e934505eb4b25aa7fbef885')
   sdk.setCaptchaUrl('http://39.149.1.41')
   await sdk.verifyToken(kw,1*1000).then(() => {
@@ -462,26 +524,15 @@ router.post('/login/', async ctx=>{
     // 验证验证码
     console.log("humanCheck:",humanCheck)
     if(resCheck && checkNum == resCheck){
-      // 生成新token
-      let token = makeToken()
       // 生成用户数据--最好用存储过程
       let usrData = 'abcd'
       // 设置cookie，session,删除tok
-      ctx.session[token] = usrData
-      console.log("token:",token)
-      delete ctx.session[`${tok}`]
-      ctx.cookies.set('token', token, {
-        // httpOnly: false,
-        // signed: false,
-        maxAge:10*60*1000
-      })
+      ctx.session['sess'] = usrData
+      delete ctx.session['checkNum']
       // 返回成功
       result = {
         result:true,
-        data:{
-          token,
-          maxAge: 10*60*1000
-        }
+        data: '登录成功'
       }
     }else{
       result = {result:false,errorText:'登录失败,验证码无效'}

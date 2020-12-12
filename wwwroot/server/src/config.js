@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-11-19 01:37:59
- * @LastEditTime: 2020-11-26 11:47:24
+ * @LastEditTime: 2020-12-04 01:07:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \mockserver\src\config.js
@@ -16,7 +16,7 @@ export let SYSTEM = {
 	PROT: 8080,
 	// 分页条数
 	PAGESIZE: 10,
-	HOST: 'localhost',
+	HOST: 'licaisos.com',
 	MD5_KEY: 'SDfdfg5aO*&$O%ohlkuIYIUOR$LUI$HR(&*FHULI$HRGSDLKJFHSDILUY$*OOY$IUHILUFH*O$&TIGRgrdrgd大概多少风格士大夫敢死队风格让他如果士大夫敢死队发)',
 }
 
@@ -52,7 +52,7 @@ export let REDIS = {
 
 export let UPLOAD = {
 	DIR: path.resolve(__dirname, 'static'),
-	TMP: path.resolve(__dirname, 'static\\tmp'),  
+	TMP: path.resolve(__dirname, 'static/tmp'),  
 }
 
 export let SESSION = {

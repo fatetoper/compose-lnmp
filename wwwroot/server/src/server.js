@@ -1,14 +1,14 @@
 /*
  * @Author: fatetoper
  * @Date: 2020-12-01 01:42:10
- * @LastEditors: fatetoper
- * @LastEditTime: 2020-12-01 03:08:30
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2020-12-04 14:45:39
  * @Modultype: Component
  * @Usage: import/global/prototype
  * @Description: Do not edit
  * @FilePath: \docker\wwwroot\server\src\server.js
  */
-import Koa from 'koa'
+const Koa = require('koa')
 import {post, upload} from './libs/body'
 import KoaLogger from 'koa-logger'
 import fs from 'promise-fs'
@@ -16,17 +16,19 @@ import cors from 'koa2-cors'
 import network from './libs/network'
 import cookie from 'koa-cookie'
 import koa2Common from 'koa2-common'
-const session = require('koa-session2');
-import { SYSTEM, ERRORS } from './config'
+const session = require('koa-session');
+import { SYSTEM, ERRORS, SESSION } from './config'
 import router from './routes'
 
 const server = new Koa()
 const env = process.env.NODE_ENV || 'development'
 const store = require('./libs/session');
+
+
  
 export default (async (server, env)=>{
     // error 页面引入
-    let error_404='';
+    let error_404 = '';
     try{
         error_404= await fs.readFile(ERRORS[404])
         error_404=error_404.toString();
@@ -34,27 +36,34 @@ export default (async (server, env)=>{
     console.log('read 404 file error');
     }
 
-    let error_500='';
+    let error_500 = '';
     try{
         error_500 = await fs.readFile(ERRORS[500])
-        error_500=error_500.toString();
+        error_500 = error_500.toString();
     }catch(e){
     console.log('read 500 file error');
     }
 
-    server.keys = ['suid']
+    try{
+        let buffer = await fs.readFile(SESSION.key_path);
+        server.keys = JSON.parse(buffer.toString());
+    }catch(e){
+        console.log('读取key文件失败，请重新生成');
+        console.error(e);
+        return;
+    }
     server
         //全局错误处理
         .use(async (ctx,next)=>{
             try{
             await next();
             if(!ctx.body){
-                ctx.status=404;
-                ctx.body=error_404||'Not Found';
+                ctx.status = 404;
+                ctx.body = error_404||'Not Found';
             }
             }catch(e){
-            ctx.status=500;
-            ctx.body=error_500||'Internal Server Error';
+            ctx.status = 500;
+            ctx.body = error_500||'Internal Server Error';
             console.error(e);
             }
         })
@@ -80,8 +89,19 @@ export default (async (server, env)=>{
         .use(router.allowedMethods())
         .use(session({
             store: store,
-            maxAge:1*60*60*1000
-        }))
+            // key: ['checkNum', 'sess'],
+            key: 'koa:sess',
+            maxAge: 30*60*1000,
+            renew: true
+        }, server))
+        .use(ctx => {
+            let user = ctx.session.user;
+            ctx.session.view = "index";
+        })
+        .use(ctx => {
+            // refresh session if set maxAge
+            ctx.session.refresh()
+        })
         .use((ctx, next) => {
             const start = new Date()
             return next().then(() => {
@@ -89,10 +109,10 @@ export default (async (server, env)=>{
                 console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
             })
         });
-
+        
     // 全局引入 MySQL、Redis客户端
     server.context.db = await require('./libs/mysql');
-    // server.context.redis = require('./libs/redis');
+    server.context.redis = require('./libs/redis');
     //session
     // await require('./libs/session')(server);
 
